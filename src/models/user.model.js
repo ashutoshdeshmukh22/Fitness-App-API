@@ -21,6 +21,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'basic',
     },
+    performed: [
+      {
+        exerciseId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Exercise',
+        },
+        exerciseCount: { type: Number, required: true },
+        duration: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );

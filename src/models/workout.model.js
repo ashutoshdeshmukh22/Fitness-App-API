@@ -24,7 +24,7 @@ const workoutSchema = new mongoose.Schema(
       required: true,
     },
     totalDuration: {
-      type: Number,
+      type: String,
       required: true,
     },
     performedCount: {
