@@ -13,6 +13,23 @@ const Role = require('../helpers/role');
 const router = express.Router();
 
 // For Performing a Exercise
-router.post('/perform-exercise/:exerciseId', userController.performExercise);
+router.post(
+  '/perform-exercise/:exerciseId',
+  AuthMiddleware.isAuth,
+  userController.performExercise
+);
+
+// For Getting a Workout
+router.get('/get-workout', AuthMiddleware.isAuth, userController.getWorkout);
+
+// For Getting a Exercise
+router.get('/get-exercise', AuthMiddleware.isAuth, userController.getExercise);
+
+// For Getting a Exercise and Workout Count And Total Duration
+router.get(
+  '/get-total-performed',
+  AuthMiddleware.isAuth,
+  userController.getTotalPerformed
+);
 
 module.exports = router;

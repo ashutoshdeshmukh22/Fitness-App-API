@@ -13,15 +13,35 @@ const Role = require('../helpers/role');
 const router = express.Router();
 
 // For Adding a Workout
-router.post('/add-workout', adminController.postWorkout);
-
-// For Getting a Workout
-router.get('/get-workout', adminController.getWorkout);
+router.post(
+  '/add-workout',
+  AuthMiddleware.isAuth,
+  AuthMiddleware.checkRole([Role.Admin]),
+  adminController.postWorkout
+);
 
 // For Adding a Exercise
-router.post('/add-exercise', adminController.postExercise);
+router.post(
+  '/add-exercise',
+  AuthMiddleware.isAuth,
+  AuthMiddleware.checkRole([Role.Admin]),
+  adminController.postExercise
+);
+
+// For Getting a Workout
+router.get(
+  '/get-workout',
+  AuthMiddleware.isAuth,
+  AuthMiddleware.checkRole([Role.Admin]),
+  adminController.getWorkout
+);
 
 // For Getting a Exercise
-router.get('/get-exercise', adminController.getExercise);
+router.get(
+  '/get-exercise',
+  AuthMiddleware.isAuth,
+  AuthMiddleware.checkRole([Role.Admin]),
+  adminController.getExercise
+);
 
 module.exports = router;

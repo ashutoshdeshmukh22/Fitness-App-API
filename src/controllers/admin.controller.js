@@ -1,5 +1,6 @@
 const Workout = require('../models/workout.model');
 const Exercise = require('../models/exercise.model');
+const User = require('../models/user.model');
 
 // for Creating new Workout
 exports.postWorkout = async (req, res, next) => {
@@ -23,8 +24,8 @@ exports.postWorkout = async (req, res, next) => {
       ageGroup: ageGroup,
       purpose: purpose,
       exercisesCount: exercisesCnt,
-      totalDuration: totalDuration,
-      performedCount: performedCount,
+      totalDuration: '0',
+      performedCount: 0,
       createdBy: req.session.user,
     });
 
@@ -40,9 +41,6 @@ exports.postWorkout = async (req, res, next) => {
     console.log(error);
   }
 };
-
-// for Listing / Fetching Workouts
-exports.getWorkout = async (req, res, next) => {};
 
 // for Creating new Exercise
 exports.postExercise = async (req, res, next) => {
@@ -83,6 +81,7 @@ exports.postExercise = async (req, res, next) => {
       performedCount: 0,
       duration: '0',
       createdBy: req.session.user,
+      workoutId: workout._id,
       equipMentRequired: equipMentRequired,
     });
 
@@ -96,13 +95,81 @@ exports.postExercise = async (req, res, next) => {
       message: 'Exercise Added',
       item: result,
     });
-
-    workout.exercise.push(result._id);
+    // Adding the Exercise Reference To Its Workout
+    let exerciseObj = { exerciseId: result._id, duration: result.duration };
+    workout.exercise.push(exerciseObj);
+    await workout.save();
+    // Counting and Adding Exercises Count to DB
+    const exercisesCnt = workout.exercise.length;
+    workout.exercisesCount = exercisesCnt;
     await workout.save();
   } catch (error) {
     console.log(error);
   }
 };
 
+// for Listing / Fetching Workouts
+exports.getWorkout = async (req, res, next) => {
+  // console.log(req.query);
+  const mode = req.query.mode;
+  const sortby = req.query.sortby;
+
+  try {
+    // If Want Get All The Workouts Added by Specific Admin
+    // const user = await User.findOne({
+    //   email: req.session.user.email,
+    // });
+    // If Want to Fetch Admin Specific
+    //{  createdBy: user._id,}
+    const userAddedWorkouts = await Workout.find().sort({ [sortby]: mode });
+
+    if (!userAddedWorkouts) {
+      return res.status(404).json({
+        message: 'There is Some Problem While Fetching Workouts',
+      });
+    }
+
+    res.status(200).json({
+      message: 'Success',
+      Exercises: userAddedWorkouts,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(404)
+      .json({ message: 'There is Some Problem While Fetching Exercises' });
+  }
+};
+
 // for Listing / Fetching Exercises
-exports.getExercise = async (req, res, next) => {};
+exports.getExercise = async (req, res, next) => {
+  // console.log(req.query);
+  const mode = req.query.mode;
+  const sortby = req.query.sortby;
+
+  try {
+    // If Want Get All The Exercises Added by Specific Admin
+    // const user = await User.findOne({
+    //   email: req.session.user.email,
+    // });
+    // If Want to Fetch Admin Specific
+    //{  createdBy: user._id,}
+    const userAddedExercises = await Exercise.find().sort({ [sortby]: mode });
+
+    if (!userAddedExercises) {
+      return res.status(404).json({
+        message: 'There is Some Problem While Fetching Exercises',
+      });
+    }
+
+    res.status(200).json({
+      message: 'Success',
+      Exercises: userAddedExercises,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(404)
+      .json({ message: 'There is Some Problem While Fetching Exercises' });
+  }
+};

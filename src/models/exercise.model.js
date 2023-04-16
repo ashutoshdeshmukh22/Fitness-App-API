@@ -23,13 +23,17 @@ const exerciseSchema = new mongoose.Schema(
       required: true,
     },
     duration: {
-      type: String,
+      type: Number,
       required: true,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'User',
+    },
+    workoutId: {
+      type: Schema.Types.ObjectId,
+      required: true,
     },
     equipMentRequired: {
       type: Boolean,

@@ -28,7 +28,17 @@ const userSchema = new mongoose.Schema(
           ref: 'Exercise',
         },
         exerciseCount: { type: Number, required: true },
-        duration: { type: String, required: true },
+        duration: { type: Number, required: true },
+      },
+    ],
+    workoutperformed: [
+      {
+        workoutId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Workout',
+        },
+        duration: { type: Number, required: true },
+        performedCount: { type: Number, required: true },
       },
     ],
   },

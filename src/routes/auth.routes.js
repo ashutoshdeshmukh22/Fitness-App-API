@@ -21,13 +21,4 @@ router.post('/signup', authController.postSignup);
 // Logout route
 router.put('/logout', authController.logOut);
 
-// router.get('/welcome', AuthMiddleware.isAuth, welcomeuser.welcomeUser);
-
-// router.get(
-//   '/welcomeadmin',
-//   AuthMiddleware.isAuth,
-//   AuthMiddleware.checkRole([Role.Admin]),
-//   welcomeuser.welcomeAdmin
-// );
-
 module.exports = router;

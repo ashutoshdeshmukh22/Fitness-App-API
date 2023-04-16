@@ -24,7 +24,7 @@ const workoutSchema = new mongoose.Schema(
       required: true,
     },
     totalDuration: {
-      type: String,
+      type: Number,
       required: true,
     },
     performedCount: {
@@ -38,8 +38,13 @@ const workoutSchema = new mongoose.Schema(
     },
     exercise: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'Exercise',
+        exerciseId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Exercise',
+        },
+        duration: {
+          type: Number,
+        },
       },
     ],
   },
