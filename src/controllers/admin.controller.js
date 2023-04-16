@@ -39,6 +39,7 @@ exports.postWorkout = async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
+    next(error);
   }
 };
 
@@ -79,7 +80,7 @@ exports.postExercise = async (req, res, next) => {
       ageGroup: ageGroup,
       purpose: purpose,
       performedCount: 0,
-      duration: '0',
+      duration: 0,
       createdBy: req.session.user,
       workoutId: workout._id,
       equipMentRequired: equipMentRequired,
@@ -105,6 +106,7 @@ exports.postExercise = async (req, res, next) => {
     await workout.save();
   } catch (error) {
     console.log(error);
+    next(error);
   }
 };
 

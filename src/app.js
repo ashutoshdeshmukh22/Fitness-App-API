@@ -51,6 +51,10 @@ app.use('/admin', adminRoutes);
 // Using The User Routes
 app.use('/user', userRoutes);
 
+app.use((error, req, res, next) => {
+  res.status(500).json({ message: 'Internal Server Error, Please try Again' });
+});
+
 app.listen(PORT, () => {
   console.log(`App Listening on ${PORT}`);
 });
