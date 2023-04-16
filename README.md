@@ -87,6 +87,6 @@ $ npm install
 $ npm start
 ```
 
-## Stay in touch
+## Note
 
-- Author - [Ashutosh Deshmukh](https://www.linkedin.com/in/ashutoshdeshmukh22)
+- Update The MONGO_URI in your environment variables
