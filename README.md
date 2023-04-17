@@ -88,3 +88,4 @@ $ npm start
 ```
 
 ## Note
+- Update The MONGO_URI in your environment variables
