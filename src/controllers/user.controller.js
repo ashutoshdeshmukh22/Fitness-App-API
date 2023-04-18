@@ -195,12 +195,19 @@ exports.getWorkout = async (req, res, next) => {
   // console.log(req.query);
   const mode = req.query.mode;
   const sortby = req.query.sortby;
+  const sortFields = sortby.split(',');
 
   try {
     // Getting The Post Which Are Performed By the user
     const user = await User.findOne({
       email: req.session.user.email,
     });
+
+    let sort = {};
+    sortFields.forEach((field) => {
+      sort[field] = mode;
+    });
+
     const userPerformedWorkouts = user.workoutperformed;
 
     const workoutIds = await userPerformedWorkouts.map((item) => {
@@ -209,7 +216,7 @@ exports.getWorkout = async (req, res, next) => {
 
     const AllUserPerformedWorkouts = await Workout.find({
       _id: { $in: workoutIds },
-    }).sort({ [sortby]: mode });
+    }).sort(sort);
 
     if (!AllUserPerformedWorkouts) {
       return res.status(404).json({
@@ -234,8 +241,12 @@ exports.getExercise = async (req, res, next) => {
   // console.log(req.query);
   const mode = req.query.mode;
   const sortby = req.query.sortby;
+  let isRequired;
   const sortFields = sortby.split(',');
-  console.log(sortFields);
+  const equipMentRequired = req.query.equipMentRequired;
+  if (equipMentRequired) {
+    isRequired = JSON.parse(equipMentRequired);
+  }
 
   try {
     // Getting The Post Which Are Performed By the user
@@ -254,9 +265,15 @@ exports.getExercise = async (req, res, next) => {
       sort[field] = mode;
     });
 
-    const AllUserPerformedExercises = await Exercise.find({
-      _id: { $in: exerciseIds },
-    }).sort(sort);
+    // Checking If The equipMentRequired parameter is passed or not as it is OPTIONAL
+    const userPerformedExercisesQuery = {};
+    if (equipMentRequired) {
+      userPerformedExercisesQuery.equipMentRequired = isRequired;
+    }
+
+    const AllUserPerformedExercises = await Exercise.find(
+      userPerformedExercisesQuery
+    ).sort(sort);
 
     if (!AllUserPerformedExercises) {
       return res.status(404).json({
