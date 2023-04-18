@@ -79,8 +79,7 @@ exports.postWorkout = async (req, res, next) => {
           );
         }
         // But if There Are Exercises With Same AgeGroup and Purpose as Workout Then Add Those to Workout
-        if (exercises.length === 1) workoutResult.exercise.push();
-        else workoutResult.exercise.push(...exercises);
+        workoutResult.exercise.push(...exercises);
         await workoutResult.save();
         // -------------------------------------------------------------------------------------
       } catch (error) {
@@ -126,19 +125,35 @@ exports.postExercise = async (req, res, next) => {
       });
     }
 
-    const exercise = new Exercise({
-      title: title,
-      category: category,
-      ageGroup: ageGroup,
-      purpose: purpose,
-      performedCount: 0,
-      duration: 0,
-      createdBy: req.session.user,
-      // workoutId: workout._id,
-      equipMentRequired: equipMentRequired,
-    });
-
     try {
+      const exercise = new Exercise({
+        title: title,
+        category: category,
+        ageGroup: ageGroup,
+        purpose: purpose,
+        performedCount: 0,
+        duration: 0,
+        createdBy: req.session.user,
+        // workoutId: workout._id,
+        equipMentRequired: equipMentRequired,
+      });
+
+      // Before Creating Exercise, Checking if Exercise with same age group, category and purpose is Already Exist In th DB or Not
+
+      const allExercises = await Exercise.findOne({
+        title: title,
+        ageGroup: ageGroup,
+        purpose: purpose,
+        category: category,
+      });
+
+      if (allExercises) {
+        return res.status(400).json({
+          message:
+            'Exercise Already Exists With Same Age Group, Purpose and Category',
+        });
+      }
+
       const result = await exercise.save();
       res.status(201).json({ message: 'Exercise Added', item: result });
 
@@ -153,14 +168,21 @@ exports.postExercise = async (req, res, next) => {
         if (workout) {
           workout.exercise.push(result);
           await workout.save();
+          // Updating exercisesCount in Workout
+          const exercisesCnt = workout.exercise.length;
+          workout.exercisesCount = exercisesCnt;
+          await workout.save();
         } else {
           console.log(
             'Failed to Add the Newly added Exercise Reference To Its Workout'
           );
         }
+
         // Saving Workout Id To Current Exercise To Relate That the exercise belongs to which workout
-        exercise.workoutId = workout._id;
-        await exercise.save();
+        if (workout) {
+          exercise.workoutId = workout._id;
+          await exercise.save();
+        }
       } catch (error) {
         console.log(error);
       }
@@ -168,15 +190,6 @@ exports.postExercise = async (req, res, next) => {
       console.log(error);
       res.status(500).json({ message: 'There is a Problem adding a Exercise' });
     }
-
-    // Adding the Exercise Reference To Its Workout
-    // let exerciseObj = { exerciseId: result._id, duration: result.duration };
-    // workout.exercise.push(exerciseObj);
-    // await workout.save();
-    // Counting and Adding Exercises Count to DB
-    // const exercisesCnt = workout.exercise.length;
-    // workout.exercisesCount = exercisesCnt;
-    // await workout.save();
   } catch (error) {
     console.log(error);
     next(error);
@@ -188,6 +201,7 @@ exports.getWorkout = async (req, res, next) => {
   // console.log(req.query);
   const mode = req.query.mode;
   const sortby = req.query.sortby;
+  const sortFields = sortby.split(',');
 
   try {
     // If Want Get All The Workouts Added by Specific Admin
@@ -196,7 +210,11 @@ exports.getWorkout = async (req, res, next) => {
     // });
     // If Want to Fetch Admin Specific
     //{  createdBy: user._id,}
-    const userAddedWorkouts = await Workout.find().sort({ [sortby]: mode });
+    let sort = {};
+    sortFields.forEach((field) => {
+      sort[field] = mode;
+    });
+    const userAddedWorkouts = await Workout.find().sort(sort);
 
     if (!userAddedWorkouts) {
       return res.status(404).json({
@@ -221,6 +239,12 @@ exports.getExercise = async (req, res, next) => {
   // console.log(req.query);
   const mode = req.query.mode;
   const sortby = req.query.sortby;
+  let isRequired;
+  const equipMentRequired = req.query.equipMentRequired;
+  if (equipMentRequired) {
+    isRequired = JSON.parse(equipMentRequired);
+  }
+  const sortFields = sortby.split(',');
 
   try {
     // If Want Get All The Exercises Added by Specific Admin
@@ -229,7 +253,21 @@ exports.getExercise = async (req, res, next) => {
     // });
     // If Want to Fetch Admin Specific
     //{  createdBy: user._id,}
-    const userAddedExercises = await Exercise.find().sort({ [sortby]: mode });
+    // Create a dynamic sort object based on the sortFields array
+    let sort = {};
+    sortFields.forEach((field) => {
+      sort[field] = mode;
+    });
+
+    // Checking If The equipMentRequired parameter is passed or not as it is OPTIONAL
+    const userAddedExercisesQuery = {};
+    if (equipMentRequired) {
+      userAddedExercisesQuery.equipMentRequired = isRequired;
+    }
+
+    const userAddedExercises = await Exercise.find(
+      userAddedExercisesQuery
+    ).sort(sort);
 
     if (!userAddedExercises) {
       return res.status(404).json({

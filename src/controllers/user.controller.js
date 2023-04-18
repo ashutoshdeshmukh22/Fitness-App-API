@@ -19,34 +19,39 @@ exports.performExercise = async (req, res, next) => {
       throw new Error();
     }
 
-    let intervalId;
-    let seconds = 0;
     let performedCount = exerciseItem.performedCount;
-    let TotalWorkoutDuration;
 
-    const startExercise = () => {
-      if (!intervalId) {
-        intervalId = setInterval(() => {
-          seconds++;
-          currentTotalTime = `${seconds}`;
-        }, 1000);
-      }
-    };
+    function startCounter() {
+      start = new Date();
+    }
 
-    const stopExercise = () => {
-      clearInterval(intervalId);
-      intervalId = null;
-    };
+    function stopCounter() {
+      stop = new Date();
+      elapsed = stop.getTime() - start.getTime();
+    }
+
+    function resetCounter() {
+      elapsed = 0;
+    }
+
+    function getElapsed() {
+      const seconds = Math.floor(elapsed / 1000);
+      console.log(seconds);
+      return seconds;
+    }
 
     // If The Action is Start. Start the exercise
     if (action === 'start') {
-      startExercise();
+      // startExercise();
+      startCounter();
       performedCount++;
       return res
         .status(200)
         .json({ message: 'Exercise Started', ExerciseItem: exerciseItem });
     } else if (action === 'stop') {
-      stopExercise();
+      // stopExercise();
+      stopCounter();
+      const currentTotalTime = getElapsed();
 
       // Saving Total Duration of Exercise in DB
       try {
@@ -66,7 +71,84 @@ exports.performExercise = async (req, res, next) => {
           console.log('Error While Saving Duration and Performed Count');
         }
 
+        res.status(200).json({
+          message: 'Exercise Stopped',
+          TotalTime: currentTotalTime,
+        });
+
+        // Saving the Performed Exercise Details To User
+        try {
+          const workout = await Workout.findById(exerciseItem.workoutId);
+          if (!workout) {
+            return console.log('Workout Item Note Found From User');
+          }
+          const user = await User.findOne({ email: req.session.user.email });
+
+          if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+          }
+
+          let userPrevExeDuration = 0;
+          const performed = user.performed.find((item) =>
+            item.exerciseId.equals(exerciseItem._id)
+          );
+
+          if (performed) {
+            userPrevExeDuration = performed.duration;
+          }
+
+          const totalUserExerciseTime = addTimeHelper.addTime(
+            userPrevExeDuration,
+            currentTotalTime
+          );
+
+          const isExerciseExist = user.performed.some((item) =>
+            item.exerciseId.equals(exerciseItem._id)
+          );
+          const isWorkoutExist = user.workoutperformed.some((item) =>
+            item.workoutId.equals(workout._id)
+          );
+
+          const TotalWorkoutDuration = user.workoutperformed.reduce(
+            (acc, curr) => acc + curr.duration,
+            0
+          );
+
+          if (isExerciseExist && isWorkoutExist) {
+            await User.updateOne(
+              { _id: user._id, 'performed.exerciseId': exerciseItem._id },
+              {
+                $set: {
+                  'performed.$.exerciseCount': performedCount,
+                  'performed.$.duration': totalUserExerciseTime,
+                  'workoutperformed.$.duration': TotalWorkoutDuration,
+                  'workoutperformed.$.performedCount': 0,
+                },
+              }
+            );
+          } else {
+            user.performed.push({
+              exerciseId: exerciseItem._id,
+              exerciseCount: performedCount,
+              duration: totalUserExerciseTime,
+            });
+            user.workoutperformed.push({
+              workoutId: workout._id,
+              duration: workout.totalDuration,
+              performedCount: workout.performedCount,
+            });
+            await user.save();
+          }
+        } catch (error) {
+          console.log(error);
+          next(error);
+        }
+
         // And Also Saving Total Duration of Exercise In Workout Exercise Array
+        const workout = await Workout.findOne({ _id: exerciseItem.workoutId });
+        if (!workout) {
+          return console.log('Workout Item Note Found');
+        }
         await Workout.findOneAndUpdate(
           { _id: exerciseItem.workoutId },
           {
@@ -80,106 +162,15 @@ exports.performExercise = async (req, res, next) => {
             new: true,
           }
         );
-      } catch (error) {
-        console.log(error);
-        next(error);
-      }
-
-      // And updating the Total Duration of Workout by adding its workout duration
-      const workout = await Workout.findById(exerciseItem.workoutId);
-      try {
+        // And updating the Total Duration of Workout by adding its workout duration
         const exercises = workout.exercise;
-
-        TotalWorkoutDuration = exercises.reduce(
-          (acc, curr) => acc + curr.duration,
-          0
-        );
-        workout.totalDuration = TotalWorkoutDuration;
-        workout.save();
-      } catch (error) {
-        console.log(error);
-        next(error);
-      }
-
-      // Saving the Performed Exercise Details To User
-      try {
-        const user = await User.findOne({ email: req.session.user.email });
-        let userPrevExeDuration;
-        await user.performed.find((item) => {
-          let exerciseId = exerciseItem._id.toString();
-          let userPerformedId = item.exerciseId.toString();
-          if (exerciseId === userPerformedId) {
-            userPrevExeDuration = item.duration;
-          }
-        });
-
-        const totalUserExerciseTime = addTimeHelper.addTime(
-          userPrevExeDuration,
-          currentTotalTime
-        );
-        if (userPrevExeDuration === undefined) {
-          userPrevExeDuration = 0;
-        }
-
-        const userExerciseItems = user.performed;
-        const isExerciseExist = await userExerciseItems.find((item) => {
-          let exerciseId = item.exerciseId.toString();
-          let userPerformedExerciseId = exerciseItem._id.toString();
-          if (exerciseId === userPerformedExerciseId) {
-            return true;
-          }
-        });
-
-        const userWorkoutItems = user.workoutperformed;
-        const isWorkoutExist = await userWorkoutItems.find((item) => {
-          let workoutId = item.workoutId.toString();
-          let userPerformedWorkouts = workout._id.toString();
-          if (workoutId === userPerformedWorkouts) {
-            return true;
-          }
-        });
-
-        const userPerformedWorkouts = user.workoutperformed;
-        const TotalWorkoutDuration = userPerformedWorkouts.reduce(
+        const totalWorkoutDuration = exercises.reduce(
           (acc, curr) => acc + curr.duration,
           0
         );
 
-        if (isExerciseExist && isWorkoutExist) {
-          // To update existing exercise if exist
-          await User.findOneAndUpdate(
-            { _id: user._id },
-            {
-              $set: {
-                'performed.$[elem].exerciseCount': performedCount,
-                'performed.$[elem].duration': totalUserExerciseTime,
-                'workoutperformed.$[elem].duration': TotalWorkoutDuration,
-                'workoutperformed.$[elem].performedCount': 0,
-              },
-            },
-            {
-              arrayFilters: [{ 'elem._id': exerciseItem._id }],
-              upsert: true,
-              new: true,
-            }
-          );
-        } else {
-          // To add new Exercise if does not exist
-          user.performed.push({
-            exerciseId: exerciseItem._id,
-            exerciseCount: performedCount,
-            duration: totalUserExerciseTime,
-          });
-          user.workoutperformed.push({
-            workoutId: workout._id,
-            duration: workout.totalDuration,
-            performedCount: workout.performedCount,
-          });
-          await user.save();
-        }
-        return res.status(200).json({
-          message: 'Exercise Stopped',
-          TotalTime: currentTotalTime,
+        await workout.updateOne({
+          $set: { totalDuration: totalWorkoutDuration },
         });
       } catch (error) {
         console.log(error);
@@ -254,9 +245,6 @@ exports.getExercise = async (req, res, next) => {
     sortFields.forEach((field) => {
       sort[field] = mode;
     });
-    console.log('====================================');
-    console.log(sort);
-    console.log('====================================');
 
     const AllUserPerformedExercises = await Exercise.find({
       _id: { $in: exerciseIds },
@@ -282,10 +270,6 @@ exports.getExercise = async (req, res, next) => {
 };
 
 exports.getTotalPerformed = async (req, res, next) => {
-  // console.log(req.query);
-  const mode = req.query.mode;
-  const sortby = req.query.sortby;
-
   try {
     // Getting The Number of Workout and Exercise Performed Count
     const user = await User.findOne({
@@ -305,6 +289,13 @@ exports.getTotalPerformed = async (req, res, next) => {
       (acc, curr) => acc + curr.duration,
       0
     );
+
+    if (userPerformedExercises.length === 0 || TotalExerciseDuration === 0) {
+      return res.status(200).json({
+        message:
+          'You Have Not Performed Any Exercises Yet, Perform some Exercises',
+      });
+    }
 
     res.status(200).json({
       message: 'Success',

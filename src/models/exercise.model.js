@@ -39,6 +39,7 @@ const exerciseSchema = new mongoose.Schema(
     equipMentRequired: {
       type: Boolean,
       required: true,
+      default: false,
     },
   },
   { timestamps: true }
