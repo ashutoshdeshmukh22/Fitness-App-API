@@ -16,7 +16,7 @@ exports.postSignup = async (req, res, next) => {
       return res.status(400).send(errors.array()[0].msg);
     }
     if (!(username && email && password && role)) {
-      res.status(400).json({ message: 'All input is required' });
+      res.status(400).json({ message: 'All Input Is Required' });
     }
     if (!Roles.includes(role)) {
       return res.status(400).json({ message: 'Invalid Role' });
@@ -37,7 +37,7 @@ exports.postSignup = async (req, res, next) => {
     // Create user in our database
     const user = await User.create({
       username: username,
-      email: email.toLowerCase(), // sanitize: convert email to lowercase
+      email: email.toLowerCase(), // sanitize: Convert email to lowercase
       password: encryptedPassword,
       role: role,
     });
@@ -68,7 +68,7 @@ exports.postLogin = async (req, res, next) => {
       const user = await User.findOne({ email });
 
       if (!user) {
-        return res.status(404).json({ message: 'Email does not exist' });
+        return res.status(404).json({ message: 'Email Does Not Exist' });
       }
 
       if (user && (await bcrypt.compare(password, user.password))) {
@@ -77,7 +77,7 @@ exports.postLogin = async (req, res, next) => {
         // Setting a flag to indicate the user is performing an exercise or not.
         req.session.isPerformingExercise = false;
         return res.status(200).json({
-          message: 'User Logged In',
+          message: 'User Logged in',
           user: user,
         });
       }
