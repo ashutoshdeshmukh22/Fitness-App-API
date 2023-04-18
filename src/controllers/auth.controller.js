@@ -37,7 +37,7 @@ exports.postSignup = async (req, res, next) => {
     // Create user in our database
     const user = await User.create({
       username: username,
-      email: email.toLowerCase(), // sanitize: convert email to lowercase
+      email: email.toLowerCase(), // sanitize: Convert email to lowercase
       password: encryptedPassword,
       role: role,
     });
@@ -75,7 +75,7 @@ exports.postLogin = async (req, res, next) => {
         req.session.isLoggedIn = true;
         req.session.user = user;
         return res.status(200).json({
-          message: 'User Logged In',
+          message: 'User Logged in',
           user: user,
         });
       }
