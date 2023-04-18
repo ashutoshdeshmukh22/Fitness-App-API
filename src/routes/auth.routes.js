@@ -16,7 +16,7 @@ router.post(
   [
     body('email')
       .isEmail()
-      .withMessage('Please enter a valid email address.')
+      .withMessage('Please Enter A Valid Email Address.')
       .normalizeEmail(),
     body('password', 'Password has to be valid.')
       .exists()
