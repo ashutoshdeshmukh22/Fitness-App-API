@@ -29,22 +29,28 @@ Fitness App API
 ```bash
 # Register
 http://localhost:3000/signup
-
+```
+```bash
 # Login
 http://localhost:3000/login
-
+```
+```bash
 # Log Out
 http://localhost:3000/logout
-
+```
+```bash
 # Add / Create Workout
 http://localhost:3000/admin/add-workout
-
+```
+```bash
 # Add / Create Exercise
 http://localhost:3000/admin/add-exercise
-
+```
+```bash
 # Fetch Workouts
 http://localhost:3000/admin/get-workout/?sortby='value'&mode='value'
-
+```
+```bash
 # Exercises Workouts
 http://localhost:3000/admin/get-exercise/?sortby='value'&mode='value'
 ```
@@ -54,25 +60,30 @@ http://localhost:3000/admin/get-exercise/?sortby='value'&mode='value'
 ```bash
 # Register
 http://localhost:3000/signup
-
+```
+```bash
 # Login
 http://localhost:3000/login
-
+```
+```bash
 # Log Out
 http://localhost:3000/logout
-
+```
+```bash
 # Perform Exercise
 http://localhost:3000/user/perform-exercise/'exerciseId'?action='start/stop'
-
+```
+```bash
 # Fetch Performed Workouts
 http://localhost:3000/user/get-workout/?sortby='value'&mode='value'
-
+```
+```bash
 # Fetch Performed Exercises
 http://localhost:3000/user/get-exercise/?sortby='value'&mode='value'
-
+```
+```bash
 # Fetch Total Performed - Number of exercises performed, number of workouts performed, and total duration for which all the exercise/workout performed.
 http://localhost:3000/user/get-total-performed/
-
 ```
 
 ## Installation
@@ -86,7 +97,3 @@ $ npm install
 ```bash
 $ npm start
 ```
-
-## Note
-
-- Update The MONGO_URI in your environment variables
