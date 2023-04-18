@@ -10,14 +10,17 @@ const workoutSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+      enum: ['Full Body', 'Upper Body', 'Lower Body'],
     },
     ageGroup: {
       type: String,
       required: true,
+      enum: ['18-45', '45-60', '60+'],
     },
     purpose: {
       type: String,
       required: true,
+      enum: ['Weight Loss', 'Weight Gain', 'Stay Fit'],
     },
     exercisesCount: {
       type: Number,

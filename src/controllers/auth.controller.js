@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator/check');
-
+const Roles = ['admin', 'user'];
 // Importing User Model
 const User = require('../models/user.model');
 
@@ -16,7 +16,10 @@ exports.postSignup = async (req, res, next) => {
       return res.status(400).send(errors.array()[0].msg);
     }
     if (!(username && email && password && role)) {
-      res.status(400).send('All input is required');
+      res.status(400).json({ message: 'All input is required' });
+    }
+    if (!Roles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid Role' });
     }
 
     // check if user already exist Validate if user exist in our database

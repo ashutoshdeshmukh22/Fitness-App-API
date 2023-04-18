@@ -22,7 +22,7 @@ Fitness App API
 - Fetch User Performed Exercises / Workout
 - Fetch Number of Workout / Exercise Performed and Total Duration
 
-(While Fetching You Can sort the data by category, by age group, by duration, by purpose, by performed count. In ascending or descending order)
+(You Can sort the data by category,by age group, by duration, by purpose, by performed count. in ascending or descending order)
 
 ## API Endpoints For Admin
 
@@ -88,3 +88,5 @@ $ npm start
 ```
 
 ## Note
+
+- Update The MONGO_URI in your environment variables

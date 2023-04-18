@@ -4,9 +4,6 @@ const { check, body } = require('express-validator/check');
 // Importing Auth Controller
 const authController = require('../controllers/auth.controller');
 
-// Importing Is Auth Middleware
-const AuthMiddleware = require('../middleware/is-auth');
-
 // Importing Roles
 const Role = require('../helpers/role');
 
@@ -40,7 +37,7 @@ router.post(
       .isEmail()
       .withMessage('Please enter a valid email address.')
       .normalizeEmail(),
-    body('password', 'Password has to be valid.')
+    body('password', 'Password must have minimum 5 characters.')
       .exists()
       .withMessage('All input is required')
       .isLength({ min: 5 })
