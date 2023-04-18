@@ -18,7 +18,7 @@ exports.performExercise = async (req, res, next) => {
     if (!exerciseItem) {
       throw new Error();
     }
-
+    // Getting Existing Performed Count To Update
     let performedCount = exerciseItem.performedCount;
 
     function startCounter() {
@@ -30,9 +30,9 @@ exports.performExercise = async (req, res, next) => {
       elapsed = stop.getTime() - start.getTime();
     }
 
-    function resetCounter() {
-      elapsed = 0;
-    }
+    // function resetCounter() {
+    //   elapsed = 0;
+    // }
 
     function getElapsed() {
       const seconds = Math.floor(elapsed / 1000);
@@ -42,15 +42,23 @@ exports.performExercise = async (req, res, next) => {
 
     // If The Action is Start. Start the exercise
     if (action === 'start') {
-      // startExercise();
       startCounter();
+      // Checking if Another Exercise is being performed or not
+      if (req.session.isPerformingExercise) {
+        return res
+          .status(400)
+          .send({ message: 'Another exercise is already being performed.' });
+      }
+      // Setting the flag to true to indicate that an exercise is being performed
+      req.session.isPerformingExercise = true;
       performedCount++;
       return res
         .status(200)
         .json({ message: 'Exercise Started', ExerciseItem: exerciseItem });
     } else if (action === 'stop') {
-      // stopExercise();
       stopCounter();
+      // Reset the flag to false when the exercise is finished
+      req.session.isPerformingExercise = false;
       const currentTotalTime = getElapsed();
 
       // Saving Total Duration of Exercise in DB

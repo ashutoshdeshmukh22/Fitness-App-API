@@ -74,6 +74,8 @@ exports.postLogin = async (req, res, next) => {
       if (user && (await bcrypt.compare(password, user.password))) {
         req.session.isLoggedIn = true;
         req.session.user = user;
+        // Setting a flag to indicate the user is performing an exercise or not.
+        req.session.isPerformingExercise = false;
         return res.status(200).json({
           message: 'User Logged In',
           user: user,
